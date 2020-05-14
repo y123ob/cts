@@ -145,8 +145,8 @@ void get_normal_from_diffuse()
                 r_ratio[k] = (float)image_pointer[k][4 * j]/image_pointer[GRAD_C][4 * j + channel] - 0.5;
 
             normalize_vector(r_ratio);
-            if(image_width == 1080)
-                printf("%f %f %f\n", r_ratio[0], r_ratio[1], r_ratio[2]);
+            //if(j == 1080)
+                //printf("%f %f %f\n", r_ratio[0], r_ratio[1], r_ratio[2]);
             normal_image_pointer[3 * j + 0] = ratio_to_uchar(r_ratio[2]);
             normal_image_pointer[3 * j + 1] = ratio_to_uchar(r_ratio[1]);
             normal_image_pointer[3 * j + 2] = ratio_to_uchar(r_ratio[0]);
@@ -251,12 +251,12 @@ void get_normal_from_specular()
             float r_ratio[3];
             int channel = 0;
             for (int k = 0; k < 3; k++)
-                r_ratio[k] = (float)image_pointer[k][4 * j]/image_pointer[GRAD_C][4 * j + channel] - 0.5;
+                r_ratio[k] = (float)image_pointer[k][4 * j + channel]/image_pointer[GRAD_C][4 * j + channel] - 0.5;
             normalize_vector(r_ratio);
-            r_ratio[2] -= 1.0;
+            r_ratio[2] += 1.0;
             normalize_vector(r_ratio);
-            if(image_width == 1080)
-                printf("%f %f %f\n", r_ratio[0], r_ratio[1], r_ratio[2]);
+            //if(j == 1080)
+                //printf("%f %f %f\n", r_ratio[0], r_ratio[1], r_ratio[2]);
             normal_image_pointer[3 * j + 0] = ratio_to_uchar(r_ratio[2]);
             normal_image_pointer[3 * j + 1] = ratio_to_uchar(r_ratio[1]);
             normal_image_pointer[3 * j + 2] = ratio_to_uchar(r_ratio[0]);
@@ -277,9 +277,9 @@ int main()
     //write_separated_image();
     get_normal_from_diffuse();
     get_normal_from_specular();
-    get_normal_from_specular1();
+    //get_normal_from_specular1();
     
-    get_albedo_from_diffuse();
+    //get_albedo_from_diffuse();
 
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 2; j++)
