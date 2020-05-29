@@ -189,46 +189,6 @@ void get_albedo_from_diffuse()
     albedo.deallocate();
 
 }
-void get_normal_from_specular1(){
-    Mat normal(image_height, image_width, CV_8UC3);
-
-    for(int i=0; i<image_height; i++){
-        uchar *image_pointer[4];
-        uchar *normal_image_pointer;
-
-        image_pointer[GRAD_X] = image[GRAD_X][SPECULAR].ptr<uchar>(i);
-        image_pointer[GRAD_Y] = image[GRAD_Y][SPECULAR].ptr<uchar>(i);
-        image_pointer[GRAD_Z] = image[GRAD_Z][SPECULAR].ptr<uchar>(i);
-        image_pointer[GRAD_C] = image[GRAD_C][SPECULAR].ptr<uchar>(i);
-
-        normal_image_pointer = normal.ptr<uchar>(i);
-
-        for(int j=0; j<image_width; j++){
-            float uux, uuy, uuz, Ns;
-            uux = (float)image_pointer[GRAD_X][4*j] - 0.5 * image_pointer[GRAD_C][4*j];
-            uuy = (float)image_pointer[GRAD_Y][4*j] - 0.5 * image_pointer[GRAD_C][4*j];
-            uuz = (float)image_pointer[GRAD_Z][4*j] - 0.5 * image_pointer[GRAD_C][4*j];
-
-            Ns = sqrt(uux*uux + uuy*uuy + uuz*uuz);
-
-            float ux, uy, uz, Nbar;
-
-            ux = uux/Ns;
-            uy = uuy/Ns;
-            uz = uuz/Ns - 1;
-
-            Nbar = sqrt(ux*ux + uy*uy + uz*uz);
-
-            normal_image_pointer[3*j + GRAD_Z] = ratio_to_uchar(ux / Nbar);
-            normal_image_pointer[3*j + GRAD_Y] = ratio_to_uchar(uy / Nbar);
-            normal_image_pointer[3*j + GRAD_X] = ratio_to_uchar(uz / Nbar);
-        }
-    }
-    cout << "normal from specular1 done" << endl;
-    imwrite("normal_from_specular1.jpg", normal);
-
-    normal.deallocate();
-}
 
 void get_normal_from_specular()
 {
