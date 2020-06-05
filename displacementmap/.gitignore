@@ -1,0 +1,8 @@
+Color_raw
+Color_unpainted
+Displacement
+*.o
+dsmp
+face
+reduce.cpp
+Meshes/Emily_2_1.mtl
