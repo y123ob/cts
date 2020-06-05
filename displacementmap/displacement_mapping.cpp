@@ -3,62 +3,75 @@
 
 #include "mesh.hpp"
 #include "texture.hpp"
+#include "debug.hpp"
+#include "util.cpp"
+#include "geometry.hpp"
+
+#define BLU(p) ((p).x)
+#define GRN(p) ((p).y)
+#define RED(p) ((p).z)
 
 using namespace std;
 using namespace cv;
 
-Pxyz uv_to_xyz(int u, int v)
+int height, width;
+
+Point3f **geometry;
+Point3f **normal;
+float **high_pass;
+
+void gen_high_pass(Mat texture, String filename, int kernel_size)
 {
-    // TODO
-    return ver[u + v];
-}
-
-Pxyz uv_to_norm(int u, int v)
-{
-    // TODO
-    return vern[u + v];
-}
-
-float norm(Pxyz p) {
-    return sqrt(p * p);
-}
-
-float NCC(Pxyz p1, Pxyz p2)
-{
-    return (p1 * p2) / norm(p1) / norm(p2);   
-}
-
-float muX(Pxyz X)
-{
-    // TODO
-    return 1.0;
-}
-
-int main(int argc, char* argv[])
-{
-    float delta = 1.0, w_s = 1.0, rho = 1.0, eta = 1.0;
-
-    read_mesh(String(argv[1]));
-    Mat image = open_texture(String(argv[2]));
-    int width = image.rows, height = image.cols;
-    int radius = 1;
+    int kernel[50][50];
+    high_pass = new float*[height];
     
-    Mat dis_map(height, width, CV_32FC3);
+    for (int i = 0; i < 2 * kernel_size + 1; i++)
+        for (int j = 0; j < 2 * kernel_size + 1; j++)
+            kernel[i][j] = 2 * kernel_size + 1 - abs(kernel_size - i) - abs(kernel_size - j);
 
-    printf("%d\n", vert_n);
+    for (int v = 0; v < height; v++) {
+        high_pass[v] = new float[width];
+        for (int u = 0; u < width; u++) {
+            float sum = 0.0;
+            int weight_sum = 0;
+//            UMN;
+            for (int j = max(0, v - kernel_size), jk = 0; j < min(height, v + kernel_size + 1); j++, jk++) {
+                Point3f *pointer = texture.ptr<Point3f>(j);
+                for (int i = max(0, u - kernel_size), ik = 0; i < min(width, u + kernel_size + 1); i++, ik++) {
+  //          cout << u << " " << v << " " << i << " " << j << endl;
+                    sum += BLU(pointer[i]) * kernel[v - j + kernel_size][u - i + kernel_size];
+                    weight_sum += kernel[ik][jk];
+                
+                }
+    //            SIK;
+            }
+            
+            high_pass[v][u] = BLU(texture.at<Point3f>(v, u)) - sum / weight_sum;
+        }
+    }
+
+    write_map<float>(filename, high_pass, height, width);
+}
+
+void gen_displacement_map(float delta, float w_s, float rho, float eta, int radius)
+{
+    Mat dis_map(height, width, CV_32FC3);
 
     float chi_m, chi_z, chi_p, del_p, w_p, del_s, del_mu, w_mu;
 
-    for (int i = 0; i < height/2; i++)
+    #pragma omp parallel for
+    for (int i = 0; i < height; i++)
     {
-        Vec3f *source = image.ptr<Vec3f>(i);
-        Vec3f *destination = dis_map.ptr<Vec3f>(i);
-        for (int j = 0; j < width/2; j++)
+        Point3f *destination = dis_map.ptr<Point3f>(i);
+
+        #pragma omp parallel for
+        for (int j = 0; j < width; j++)
         {
-            Pxyz X = uv_to_xyz(j, i), n = uv_to_norm(j, i);
-            chi_m = (1.0 - NCC(X - n * delta, n))/2.0;
-            chi_z = (1.0 - NCC(X, n))/2.0;
-            chi_p = (1.0 - NCC(X + n * delta, n))/2.0;
+            Point3f x = geometry[i][j], n = normal[i][j];
+
+            chi_m = (1.0 - NCC(x - n * delta, n))/2.0;
+            chi_z = (1.0 - NCC(x, n))/2.0;
+            chi_p = (1.0 - NCC(x + n * delta, n))/2.0;
 
             if (chi_m < chi_p && chi_m < chi_z) {
                 del_p = -0.5 * delta;
@@ -80,24 +93,41 @@ int main(int argc, char* argv[])
                 for (int v = max(0, j - radius); v < min(height, j + radius); v++)
                 {
                     if (u + v == i + j) continue;
-                    Pxyz Xi = uv_to_xyz(u, v);
-                    wsum += exp(-norm(X - Xi));
-                    vsum += exp(-norm(X - Xi)) * (muX(X) - muX(Xi)) * (1 - abs((X - Xi) * n) / norm(X - Xi));
-                    //printf("%f %f\n", wsum, vsum);
+                    Point3f xi = geometry[v][u];
+                    wsum += exp(-norm(x - xi));
+                    vsum += exp(-norm(x - xi)) * (high_pass[j][i] - high_pass[v][u]) * (1 - abs(IN(x - xi, n)) / norm(x - xi));
                 }
             }
             del_mu = eta * vsum / wsum;
             w_mu = 3 * rho * chi_z / delta / (chi_m + chi_z + chi_p);
 
             float dis = (w_p * del_p + w_s * del_s + w_mu * del_mu) / (w_p + w_s + w_mu);
-            destination[j][0] = dis;
-            destination[j][1] = dis;
-            destination[j][2] = dis;
-            //printf("%f %f %f %f\n", del_p, del_s, del_mu, dis); 
+            destination[j].x = dis;
+            destination[j].y = dis;
+            destination[j].z = dis;
         }
     }
 
+    imwrite("dismap.exr", dis_map);
     show_image(dis_map, 0.16);
+}
+
+int main(int argc, char* argv[])
+{
+    
+    float delta = 1.0, w_s = 0.0, rho = 1.0, eta = 1.0;
+    int radius = 2, n = 0;
+
+    read_mesh(String(argv[1]));
+
+    Mat texture = open_texture(String(argv[2]));
+    width = texture.rows, height = texture.cols;
+    
+    read_map<Point3f>("Preprocess/normal_map.bin", &normal, width, height);
+    read_map<Point3f>("Preprocess/geometry_map.bin", &geometry, width, height);
+    //read_map<float>("Preprocess/high_pass.bin", &high_pass, width, height);
+    gen_high_pass(texture, "Preprocess/high_pass.bin", 10);
+    gen_displacement_map(1.0, 0.0, 1.0, 1.0, 2);
     waitKey(0);
 
     return 0;
