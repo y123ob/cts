@@ -1,16 +1,31 @@
 all: dsmp
-	./dsmp small_emily.obj Color_raw/00_diffuse_unlit_raw.exr
+	./dsmp Meshes/tri_emily.obj Color_raw/00_diffuse_unlit_raw.exr
 
-exr: exr.cpp
-	g++ exr.cpp -o exr `pkg-config --libs opencv`
-	./exr
+prep: geometry.o mesh.o texture.o util.o preprocess.o
+	g++ geometry.o mesh.o texture.o util.o preprocess.o -o preprocess `pkg-config --libs opencv`
+	./preprocess Meshes/tri_emily.obj
 
-mesh: mesh.cpp
-	g++ mesh.cpp -o mesh `pkg-config --libs opencv`
+preprocess.o: preprocess.cpp
+	g++ -c preprocess.cpp `pkg-config --libs opencv`
 
-dsmp: displacement_mapping.cpp mesh.cpp mesh.hpp
-	g++ mesh.cpp texture.cpp displacement_mapping.cpp -o dsmp `pkg-config --libs opencv`
+mesh.o: mesh.cpp
+	g++ -c mesh.cpp `pkg-config --libs opencv`
+
+util.o: util.cpp
+	g++ -c util.cpp `pkg-config --libs opencv`
+
+geometry.o: geometry.cpp
+	g++ -c geometry.cpp `pkg-config --libs opencv`
+
+texture.o: texture.cpp
+	g++ -c texture.cpp `pkg-config --libs opencv`
+
+displacement_mapping.o: displacement_mapping.cpp
+	g++ -c displacement_mapping.cpp `pkg-config --libs opencv`
+
+dsmp: mesh.o util.o geometry.o texture.o displacement_mapping.o
+	g++ -o dsmp geometry.o mesh.o util.o texture.o displacement_mapping.o `pkg-config --libs opencv`
 
 clean:
-	rm -f *.png *.jpg exr compare 
+	rm -f *.png *.jpg exr *.o dsmp prep face
 
