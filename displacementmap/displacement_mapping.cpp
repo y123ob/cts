@@ -3,7 +3,6 @@
 
 #include "mesh.hpp"
 #include "texture.hpp"
-#include "debug.hpp"
 #include "util.cpp"
 #include "geometry.hpp"
 
@@ -123,10 +122,10 @@ int main(int argc, char* argv[])
     Mat texture = open_texture(String(argv[2]));
     width = texture.rows, height = texture.cols;
     
-    read_map<Point3f>("Preprocess/normal_map.bin", &normal, width, height);
-    read_map<Point3f>("Preprocess/geometry_map.bin", &geometry, width, height);
-    //read_map<float>("Preprocess/high_pass.bin", &high_pass, width, height);
-    gen_high_pass(texture, "Preprocess/high_pass.bin", 10);
+    read_map<Point3f>("Output/normal_map.bin", &normal, width, height);
+    read_map<Point3f>("Output/geometry_map.bin", &geometry, width, height);
+    //read_map<float>("Output/high_pass.bin", &high_pass, width, height);
+    gen_high_pass(texture, "Output/high_pass.bin", 10);
     gen_displacement_map(1.0, 0.0, 1.0, 1.0, 2);
     waitKey(0);
 

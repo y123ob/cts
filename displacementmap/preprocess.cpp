@@ -3,7 +3,6 @@
 #include "mesh.hpp"
 #include "texture.hpp"
 #include "util.cpp"
-#include "debug.hpp"
 #include "geometry.hpp"
 
 using namespace std;
@@ -126,16 +125,16 @@ int main(int argc, char* argv[])
 
     int mode = (argc >= 3 && strcmp(argv[2], "view") == 0);
 
-    gen_face_map("Preprocess/face_map.bin");
-    gen_normal_map("Preprocess/normal_map.bin", mode);
-    gen_geometry_map("Preprocess/geometry_map.bin");
+    gen_face_map("Output/face_map.bin");
+    gen_normal_map("Output/normal_map.bin", mode);
+    gen_geometry_map("Output/geometry_map.bin");
    
 
-    // open_face_map("Preprocess/face_map.bin");
+    // open_face_map("Output/face_map.bin");
     // printf("face map read\n");
-    // gen_normal_map("Preprocess/normal_map.bin", 1);
+    // gen_normal_map("Output/normal_map.bin", 1);
     // printf("face map read\n");
-    // gen_geometry_map("Preprocess/geometry_map.bin");
+    // gen_geometry_map("Output/geometry_map.bin");
     // printf("face map read\n");
 
     return 0;
