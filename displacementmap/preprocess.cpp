@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
 {
     Mat image = open_texture("Color_raw/00_diffuse_unlit_raw.exr");
     width = image.cols, height = image.rows;
+    ~image;
 
     read_mesh(String(argv[1]));
     cvt_to_vert_i(width, height);
@@ -128,14 +129,6 @@ int main(int argc, char* argv[])
     gen_face_map("Output/face_map.bin");
     gen_normal_map("Output/normal_map.bin", mode);
     gen_geometry_map("Output/geometry_map.bin");
-   
-
-    // open_face_map("Output/face_map.bin");
-    // printf("face map read\n");
-    // gen_normal_map("Output/normal_map.bin", 1);
-    // printf("face map read\n");
-    // gen_geometry_map("Output/geometry_map.bin");
-    // printf("face map read\n");
 
     return 0;
 }

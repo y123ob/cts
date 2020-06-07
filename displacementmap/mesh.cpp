@@ -66,6 +66,7 @@ void read_mesh(cv::String filename)
             section++;
         }
     }
+    fclose(fp);
 }
 
 void cvt_to_tri_mesh()
@@ -84,8 +85,10 @@ void cvt_to_tri_mesh()
         printf("vt %f %f %f\n", vert[i].x, vert[i].y, vert[i].z);
 
     printf("# %d texture coords\n", vern_n);
-
+    
+    Point3f p[4];
     int n = 0;
+    
     for(int i = 0; i < face_n; i++) {
         if(face[i].n == 3) {
             printf("f %d/%d/%d %d/%d/%d %d/%d/%d\n", 
@@ -96,7 +99,6 @@ void cvt_to_tri_mesh()
             n++;
         }
         else {
-            Point3f p[4];
             for(int j = 0; j < 4; j++) {
                 p[j].x = vert[face[i].set[j][VT]].x;
                 p[j].y = vert[face[i].set[j][VT]].y;

@@ -3,8 +3,6 @@
 
 #include <opencv2/opencv.hpp>
 
-#define IN(X, Y) ((X).x * (Y).x + (X).y * (Y).y + (X).z * (Y).z)
-
 using namespace cv;
 
 

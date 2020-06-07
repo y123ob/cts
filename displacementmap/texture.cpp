@@ -17,4 +17,5 @@ void show_image(Mat image, float scale)
     Mat small_image;
     resize(image,small_image, Size(image.rows * scale,image.cols * scale),0,0,CV_WINDOW_AUTOSIZE);
     imshow("resize",small_image);
+    ~small_image;
 }

@@ -4,12 +4,12 @@ using namespace cv;
 
 float norm(Point3f p)
 {
-    return sqrt(IN(p, p));
+    return sqrt(p.dot(p));
 }
 
 float NCC(Point3f p1, Point3f p2)
 {
-    return IN(p1, p2) / norm(p1) / norm(p2);   
+    return p1.dot(p2) / norm(p1) / norm(p2);   
 }
 
 int sign (Point3i p1, Point3i p2, Point3i p3)
