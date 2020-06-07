@@ -117,18 +117,54 @@ void gen_geometry_map(String filename)
 
 int main(int argc, char* argv[])
 {
-    Mat image = open_texture("Color_raw/00_diffuse_unlit_raw.exr");
-    width = image.cols, height = image.rows;
-    ~image;
 
-    read_mesh(String(argv[1]));
-    cvt_to_vert_i(width, height);
+    FILE *config = fopen("config.conf", "r");
+    char key[50], value[200], output_loc[200];
 
-    int mode = (argc >= 3 && strcmp(argv[2], "view") == 0);
+    char *face_map_loc = "Output/face_map.bin";
 
-    gen_face_map("Output/face_map.bin");
-    gen_normal_map("Output/normal_map.bin", mode);
-    gen_geometry_map("Output/geometry_map.bin");
+    while(1) {
+        fscanf(config, "%s %s", key, value);
+        if(strcmp(key, "texture_loc") == 0) {
+            printf("Reading texture from \"%s\"...\n", value);
+
+            Mat texture = open_texture(value);
+            width = texture.rows, height = texture.cols;
+            ~texture;            
+        }
+        else if(strcmp(key, "mesh_loc") == 0) {
+            printf("Reading mesh from \"%s\"...\n", value);
+            read_mesh(value);
+            cvt_to_vert_i(width, height);
+
+            printf("Generating face map at \"%s\"...\n", face_map_loc);
+            gen_face_map(face_map_loc);
+        }
+        else if(strcmp(key, "normal_map_loc") == 0) {
+            int mode = (argc >= 3 && strcmp(argv[2], "view") == 0);
+            
+            printf("Generating normal map at \"%s\"...\n", value);
+            gen_normal_map(String(value), mode);        
+        }
+        else if(strcmp(key, "geometry_map_loc") == 0) {
+            printf("Generating geometry map at \"%s\"...\n", value);
+            gen_geometry_map(String(value));
+        }
+        else if(strcmp(key, "end") == 0) {
+            break;
+        }
+        else if(strcmp(key, "dismap_loc") == 0) {
+            strcpy(output_loc, value);
+        }
+        else if(strcmp(key, "delta") == 0) {
+            break;
+        }
+        else {
+            printf("Unknown config key word: \"%s\"\n", key);
+            printf("Terminate the process\n");
+            exit(1);
+        }
+    }
 
     return 0;
 }

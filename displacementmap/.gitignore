@@ -4,5 +4,8 @@ Displacement
 *.o
 dsmp
 face
+prep
 reduce.cpp
 Meshes/Emily_2_1.mtl
+debug.hpp
+preprocess

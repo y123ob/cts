@@ -27,5 +27,5 @@ dsmp: mesh.o util.o geometry.o texture.o displacement_mapping.o
 	g++ -o dsmp geometry.o mesh.o util.o texture.o displacement_mapping.o `pkg-config --libs opencv`
 
 clean:
-	rm -f *.png *.jpg exr *.o dsmp prep face
+	rm -f *.png *.jpg exr *.o dsmp prep face Output/*
 
