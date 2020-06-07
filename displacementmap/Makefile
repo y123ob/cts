@@ -1,9 +1,9 @@
 all: dsmp
-	./dsmp Meshes/tri_emily.obj Color_raw/00_diffuse_unlit_raw.exr
+	./dsmp
 
 prep: geometry.o mesh.o texture.o util.o preprocess.o
-	g++ geometry.o mesh.o texture.o util.o preprocess.o -o preprocess `pkg-config --libs opencv`
-	./preprocess Meshes/tri_emily.obj
+	g++ geometry.o mesh.o texture.o util.o preprocess.o -o prep `pkg-config --libs opencv`
+	./prep Meshes/tri_emily.obj
 
 preprocess.o: preprocess.cpp
 	g++ -c preprocess.cpp `pkg-config --libs opencv`
