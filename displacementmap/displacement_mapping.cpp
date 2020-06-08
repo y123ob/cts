@@ -61,20 +61,20 @@ void gen_displacement_map(String filename, float delta, float w_s, float rho, fl
         del_s = 1.0; // TODO
 
         float wsum = 0.0, vsum = 0.0;
-        for (int u = max(0, i - radius); u < min(width, i + radius); u++)
-            for (int v = max(0, j - radius); v < min(height, j + radius); v++) {
-                Point3f &xi = geometry[v][u];
+        for (int u = max(0, i - radius); u < min(height, i + radius); u++)
+            for (int v = max(0, j - radius); v < min(width, j + radius); v++) {
+                Point3f &xi = geometry[u][v];
                 wsum += exp(-norm(x - xi));
-                vsum += exp(-norm(x - xi)) * (high_pass[j][i] - high_pass[v][u]) * (1 - abs(n.dot(x - xi)) / norm(x - xi));
+                vsum += exp(-norm(x - xi)) * (high_pass[i][j] - high_pass[u][v]) * (1 - abs(n.dot(x - xi)) / (norm(x - xi) + 0.001f));
             }
 
         del_mu = eta * vsum / wsum;
         w_mu = 3 * rho * chi_z / delta / (chi_m + chi_z + chi_p);
 
         float dis = (w_p * del_p + w_s * del_s + w_mu * del_mu) / (w_p + w_s + w_mu);
-        point.x = dis;
-        point.y = dis;
-        point.z = dis;
+        point.x = (dis + 0.0225f) / 0.045f;
+        point.y = (dis + 0.0225f) / 0.045f;
+        point.z = (dis + 0.0225f) / 0.045f;
     });
 
     imwrite(filename, dis_map);
